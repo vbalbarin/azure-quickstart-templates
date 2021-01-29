@@ -28,6 +28,34 @@
         "description": "This is the IP address to forward DNS queries to. The default value represents Azure's internal DNS recursive resolvers."
       }
     },
+    "vnetName": {
+      "type": "string",
+      "defaultValue": "dnsproxy-vnet",
+      "metadata": {
+        "description": "Name of VNET into which the dns forwarder will be deployed"
+      }
+    },
+    "vnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/8",
+      "metadata": {
+        "description": "IP address range (CIDR) of VNET into which the dns forwarder will be deployed"
+      }
+    },
+    "subNet1Name": {
+      "type": "string",
+      "defaultValue": "default",
+      "metadata": {
+        "description": "Name of subnet inside VNET"
+      }
+    },
+    "subNet1Prefix": {
+      "type": "string",
+      "defaultValue": "10.1.0.0/16",
+      "metadata": {
+        "description": "IP address range (CIDR) of subnet inside VNET"
+      }
+    },
     "location": {
       "type": "string",
       "defaultValue": "[resourceGroup().location]",
@@ -78,14 +106,13 @@
     "ubuntuOSVersion": "18.04-LTS",
     "asetName": "dnsproxy-avail",
     "nsgName": "dnsproxy-nsg",
-    "vnetName": "dnsproxy-vnet",
-    "vnetAddressPrefix": "10.0.0.0/8",
-    "subNet1Name": "subnet1",
-    "subNet1Prefix": "10.1.0.0/16",
+    "vnetName": "[parameters('vnetName')]",
+    "vnetAddressPrefix": "[parameters('vnetAddressPrefix')]",
+    "subNet1Name": "[parameters('subNet1Name')]",
+    "subNet1Prefix": "[parameters('subNet1Prefix')]",
     "storType": "Standard_LRS",
     "location": "[parameters('location')]",
     "nicName": "[concat(parameters('vmName'), '-', 'nic')]",
-    "pipName": "[concat(parameters('vmName'), '-', 'pip')]",
     "scriptUrl": "[uri(parameters('_artifactsLocation'), concat('forwarderSetup.sh', parameters('_artifactsLocationSasToken')))]",
     "linuxConfiguration": {
       "disablePasswordAuthentication": true,
