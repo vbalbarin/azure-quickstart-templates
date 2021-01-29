@@ -173,23 +173,12 @@
       }
     },
     {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "comments": "A public IP to allow us to SSH into the VM, not recommended for production DNS servers",
-      "name": "[variables('pipName')]",
-      "apiVersion": "2020-05-01",
-      "location": "[variables('location')]",
-      "properties": {
-        "publicIPAllocationMethod": "Dynamic"
-      }
-    },
-    {
       "type": "Microsoft.Network/networkInterfaces",
       "comments": "A single network interface on each DNS server",
       "name": "[variables('nicName')]",
       "apiVersion": "2020-05-01",
       "location": "[variables('location')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses/', variables('pipName'))]",
         "[resourceId('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
         "[resourceId('Microsoft.Network/networkSecurityGroups/', variables('nsgName'))]"
       ],
@@ -202,9 +191,6 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('pipName'))]"
-              },
               "subnet": {
                 "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnet1Name'))]"
               }
