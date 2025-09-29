@@ -87,11 +87,12 @@ configuration CreateADPDC
     
     if ($VirtualNetwork.Length -eq 0) {
         $Interface = Get-NetAdapter | Where-Object Name -Like "Ethernet*" | Select-Object -First 1
+        $InterfaceAlias = $($Interface.Name)
     } else {
-        $Interface = Get-NetAdapter | Where-Object Name -Like $(Get-IPFilter -VirtualNetwork $VirtualNetwork) | Select-Object -First 1
+        $InterfaceAlias = (Get-NetIpAddress -IPAddress $(Get-IPFilter -VirtualNetwork $VirtualNetwork)).InterfaceAlias
+        #$Interface = Get-NetAdapter | Where-Object Name -Like $(Get-IPFilter -VirtualNetwork $VirtualNetwork) | Select-Object -First 1
     }
 
-    $InterfaceAlias = $($Interface.Name)
 
     Node localhost
     {
