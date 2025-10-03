@@ -82,7 +82,7 @@ configuration CreateADPDC
         [Int]$RetryIntervalSec = 60
     ) 
     
-    Import-DscResource -ModuleName xActiveDirectory, StorageDsc, xNetworking, PSDesiredStateConfiguration, xPendingReboot, xComputerManagement
+    Import-DscResource -ModuleName xActiveDirectory, StorageDsc, xNetworking, PSDesiredStateConfiguration, xPendingReboot
     [System.Management.Automation.PSCredential ]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     
     if ($VirtualNetwork.Length -eq 0) {
