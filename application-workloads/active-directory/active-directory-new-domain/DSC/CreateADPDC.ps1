@@ -155,7 +155,7 @@ configuration CreateADPDC
 
         xDisk ADDataDisk {
             DiskNumber  = $ManagedRawDiskNum
-            DriveLetter = "F"
+            DriveLetter = "X"
             DependsOn   = "[xWaitForDisk]ManagedRawDisk"
         }
 
@@ -182,9 +182,9 @@ configuration CreateADPDC
             DomainName                    = $DomainName
             DomainAdministratorCredential = $DomainCreds
             SafemodeAdministratorPassword = $DomainCreds
-            DatabasePath                  = "F:\NTDS"
-            LogPath                       = "F:\NTDS"
-            SysvolPath                    = "F:\SYSVOL"
+            DatabasePath                  = "X:\NTDS"
+            LogPath                       = "X:\NTDS"
+            SysvolPath                    = "X:\SYSVOL"
             DependsOn                     = @("[xDisk]ADDataDisk", "[WindowsFeature]ADDSInstall")
         } 
 
