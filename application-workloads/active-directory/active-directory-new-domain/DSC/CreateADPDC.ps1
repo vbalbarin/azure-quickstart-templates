@@ -82,7 +82,7 @@ configuration CreateADPDC
         [Int]$RetryIntervalSec = 30
     ) 
     
-    Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, PSDesiredStateConfiguration, xPendingReboot
+    Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, PSDesiredStateConfiguration, xPendingReboot, xComputerManagement
     [System.Management.Automation.PSCredential ]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     
     if ($VirtualNetwork.Length -eq 0) {
@@ -92,6 +92,12 @@ configuration CreateADPDC
         $InterfaceAlias = (Get-NetIpAddress -IPAddress $(Get-IPFilter -VirtualNetwork $VirtualNetwork)).InterfaceAlias
         #$Interface = Get-NetAdapter | Where-Object Name -Like $(Get-IPFilter -VirtualNetwork $VirtualNetwork) | Select-Object -First 1
     }
+
+    $EphemeralRawDisk = (Get-Disk | Where-Object {($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
+    $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
+
+    $EphemeralRawDiskNum = $EphemeralRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
+    $ManagedRawDiskNum = $ManagedRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
 
 
     Node localhost
@@ -140,17 +146,17 @@ configuration CreateADPDC
             DependsOn      = "[WindowsFeature]DNS"
         }
 
-        xWaitforDisk Disk2
+        xWaitforDisk ManagedRawDisk
         {
-            DiskNumber = 2
+            DiskNumber = $ManagedRawDiskNum
             RetryIntervalSec =$RetryIntervalSec
             RetryCount = $RetryCount
         }
 
         xDisk ADDataDisk {
-            DiskNumber  = 2
+            DiskNumber  = $ManagedRawDiskNum
             DriveLetter = "F"
-            DependsOn   = "[xWaitForDisk]Disk2"
+            DependsOn   = "[xWaitForDisk]ManagedRawDisk"
         }
 
         WindowsFeature ADDSInstall { 
