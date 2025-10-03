@@ -157,7 +157,8 @@ configuration CreateADPDC
         }
 
         Disk ADDataDisk {
-            DiskNumber  = $ManagedRawDiskNum
+            DiskId  = $ManagedRawDiskNum
+            DiskIdType = 'UniqueId'
             DriveLetter = "F"
             DependsOn   = "[WaitForDisk]ManagedRawDisk"
         }
