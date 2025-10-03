@@ -78,11 +78,11 @@ configuration CreateADPDC
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
 
-        [Int]$RetryCount = 20,
-        [Int]$RetryIntervalSec = 30
+        [Int]$RetryCount = 60,
+        [Int]$RetryIntervalSec = 60
     ) 
     
-    Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, PSDesiredStateConfiguration, xPendingReboot, xComputerManagement
+    Import-DscResource -ModuleName xActiveDirectory, StorageDsc, xNetworking, PSDesiredStateConfiguration, xPendingReboot, xComputerManagement
     [System.Management.Automation.PSCredential ]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     
     if ($VirtualNetwork.Length -eq 0) {
@@ -96,9 +96,11 @@ configuration CreateADPDC
     $EphemeralRawDisk = (Get-Disk | Where-Object {($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
     $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
 
-    $EphemeralRawDiskNum = $EphemeralRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
-    $ManagedRawDiskNum = $ManagedRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
+    # $EphemeralRawDiskNum = $EphemeralRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
+    # $ManagedRawDiskNum = $ManagedRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
 
+    $EphemeralRawUniqueId = $EphemeralRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
+    $ManagedRawUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
 
     Node localhost
     {
@@ -146,17 +148,18 @@ configuration CreateADPDC
             DependsOn      = "[WindowsFeature]DNS"
         }
 
-        xWaitforDisk ManagedRawDisk
+        WaitforDisk ManagedRawDisk
         {
-            DiskNumber = $ManagedRawDiskNum
+            DiskId = $ManagedRawDiskUniqueId
+            DiskIdType = 'UniqueId'
             RetryIntervalSec =$RetryIntervalSec
             RetryCount = $RetryCount
         }
 
-        xDisk ADDataDisk {
+        Disk ADDataDisk {
             DiskNumber  = $ManagedRawDiskNum
-            DriveLetter = "X"
-            DependsOn   = "[xWaitForDisk]ManagedRawDisk"
+            DriveLetter = "F"
+            DependsOn   = "[WaitForDisk]ManagedRawDisk"
         }
 
         WindowsFeature ADDSInstall { 
@@ -182,10 +185,10 @@ configuration CreateADPDC
             DomainName                    = $DomainName
             DomainAdministratorCredential = $DomainCreds
             SafemodeAdministratorPassword = $DomainCreds
-            DatabasePath                  = "X:\NTDS"
-            LogPath                       = "X:\NTDS"
-            SysvolPath                    = "X:\SYSVOL"
-            DependsOn                     = @("[xDisk]ADDataDisk", "[WindowsFeature]ADDSInstall")
+            DatabasePath                  = "F:\NTDS"
+            LogPath                       = "F:\NTDS"
+            SysvolPath                    = "F:\SYSVOL"
+            DependsOn                     = @("[Disk]ADDataDisk", "[WindowsFeature]ADDSInstall")
         } 
 
     }
