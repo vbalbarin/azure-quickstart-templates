@@ -99,8 +99,8 @@ configuration CreateADPDC
     # $EphemeralRawDiskNum = $EphemeralRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
     # $ManagedRawDiskNum = $ManagedRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
 
-    $EphemeralRawUniqueId = $EphemeralRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
-    $ManagedRawUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
+    $EphemeralRawDiskUniqueId = $EphemeralRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
+    $ManagedRawDiskUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
 
     Node localhost
     {
