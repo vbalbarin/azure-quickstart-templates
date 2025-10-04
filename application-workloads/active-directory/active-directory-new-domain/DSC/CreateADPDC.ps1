@@ -94,6 +94,11 @@ configuration CreateADPDC
         #$Interface = Get-NetAdapter | Where-Object Name -Like $(Get-IPFilter -VirtualNetwork $VirtualNetwork) | Select-Object -First 1
     }
 
+    # Because PowerShell 5 doesn't support [char] range operator
+    $AllDriveLettersCtoZ = 67..90 | % {[char] $_}
+    $UsedDriveLetters = (Get-Volume | Where-Object DriveLetter).DriveLetter
+    $AvailableDriveLetters = $AllDriveLettersCtoZ | Where-Object { $_ -notin $UsedDriveLetters }
+
     $EphemeralRawDisk = (Get-Disk | Where-Object {($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
     $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
 
@@ -119,16 +124,16 @@ configuration CreateADPDC
 
         Disk PageFileDisk
         {
-            DiskId  = $EphemeralRawDiskUniqueId
-            DiskIdType = 'UniqueId'
-            DriveLetter = "E"
+            DiskId      = $EphemeralRawDiskUniqueId
+            DiskIdType  = 'UniqueId'
+            DriveLetter = $AvailableDriveLetters[0]
             DependsOn   = "[WaitForDisk]EphemeralRawDisk"
         }
 
         VirtualMemory PagingSettings
         {
             Type        = 'CustomSize'
-            Drive       = 'E'
+            Drive       = $AvailableDriveLetters[0]
             InitialSize = '2048'
             MaximumSize = '2048'
             DependsOn = "[Disk]PageFileDisk"
@@ -176,16 +181,16 @@ configuration CreateADPDC
 
         WaitforDisk ManagedRawDisk
         {
-            DiskId = $ManagedRawDiskUniqueId
-            DiskIdType = 'UniqueId'
-            RetryIntervalSec =$RetryIntervalSec
-            RetryCount = $RetryCount
+            DiskId           = $ManagedRawDiskUniqueId
+            DiskIdType       = 'UniqueId'
+            RetryIntervalSec = $RetryIntervalSec
+            RetryCount       = $RetryCount
         }
 
         Disk ADDataDisk {
-            DiskId  = $ManagedRawDiskUniqueId
-            DiskIdType = 'UniqueId'
-            DriveLetter = "F"
+            DiskId      = $ManagedRawDiskUniqueId
+            DiskIdType  = 'UniqueId'
+            DriveLetter = $AvailableDriveLetters[1]
             DependsOn   = "[WaitForDisk]ManagedRawDisk"
         }
 
@@ -212,9 +217,9 @@ configuration CreateADPDC
             DomainName                    = $DomainName
             Credential                    = $DomainCreds
             SafemodeAdministratorPassword = $DomainCreds
-            DatabasePath                  = "F:\NTDS"
-            LogPath                       = "F:\NTDS"
-            SysvolPath                    = "F:\SYSVOL"
+            DatabasePath                  = $("{0}:\NTDS" -f $AvailableDriveLetters[1])
+            LogPath                       = $("{0}:\NTDS" -f $AvailableDriveLetters[1])
+            SysvolPath                    = $("{0}:\SYSVOL" -f $AvailableDriveLetters[1])
             DependsOn                     = @("[Disk]ADDataDisk", "[WindowsFeature]ADDSInstall")
         } 
 
