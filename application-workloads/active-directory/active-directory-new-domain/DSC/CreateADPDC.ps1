@@ -82,7 +82,8 @@ configuration CreateADPDC
         [Int]$RetryIntervalSec = 60
     ) 
     
-    Import-DscResource -ModuleName xActiveDirectory, StorageDsc, xNetworking, PSDesiredStateConfiguration, xPendingReboot
+    #Import-DscResource -ModuleName xActiveDirectory, StorageDsc, xNetworking, PSDesiredStateConfiguration, xPendingReboot
+    Import-DscResource -ModuleName ActiveDirectoryDsc, StorageDsc, xNetworking, PSDesiredStateConfiguration
     [System.Management.Automation.PSCredential ]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     
     if ($VirtualNetwork.Length -eq 0) {
@@ -181,10 +182,10 @@ configuration CreateADPDC
             DependsOn = "[WindowsFeature]ADDSInstall"
         }
          
-        xADDomain FirstDS 
+        ADDomain FirstDS 
         {
             DomainName                    = $DomainName
-            DomainAdministratorCredential = $DomainCreds
+            Credential                    = $DomainCreds
             SafemodeAdministratorPassword = $DomainCreds
             DatabasePath                  = "F:\NTDS"
             LogPath                       = "F:\NTDS"
