@@ -82,8 +82,8 @@ configuration CreateADPDC
         [Int]$RetryIntervalSec = 60
     ) 
     
-    #Import-DscResource -ModuleName xActiveDirectory, StorageDsc, xNetworking, PSDesiredStateConfiguration, xPendingReboot
-    Import-DscResource -ModuleName ActiveDirectoryDsc, StorageDsc, xNetworking, PSDesiredStateConfiguration
+    Import-DscResource -ModuleName ActiveDirectoryDsc, StorageDsc, xNetworking, PSDesiredStateConfiguration, ComputerManagementDsc
+    
     [System.Management.Automation.PSCredential ]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     
     if ($VirtualNetwork.Length -eq 0) {
@@ -107,6 +107,31 @@ configuration CreateADPDC
     {
         LocalConfigurationManager {
             RebootNodeIfNeeded = $true
+        }
+
+        WaitforDisk EphemeralRawDisk
+        {
+            DiskId = $EphemeralRawDiskUniqueId
+            DiskIdType = 'UniqueId'
+            RetryIntervalSec =$RetryIntervalSec
+            RetryCount = $RetryCount
+        }
+
+        Disk PageFileDisk
+        {
+            DiskId  = $EphemeralRawDiskUniqueId
+            DiskIdType = 'UniqueId'
+            DriveLetter = "E"
+            DependsOn   = "[WaitForDisk]EphemeralRawDisk"
+        }
+
+        VirtualMemory PagingSettings
+        {
+            Type        = 'CustomSize'
+            Drive       = 'E'
+            InitialSize = '2048'
+            MaximumSize = '2048'
+            DependsOn = "[Disk]PageFileDisk"
         }
 
         WindowsFeature DNS { 
