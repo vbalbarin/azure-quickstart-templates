@@ -99,9 +99,9 @@ configuration CreateADPDC
     $AvailableDriveLetters = $AllDriveLettersCtoZ | Where-Object { $_ -notin $UsedDriveLetters }
 
     $EphemeralRawDisk = (Get-Disk | Where-Object {($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
-    $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
-
     $EphemeralRawDiskUniqueId = $EphemeralRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
+    
+    $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
     $ManagedRawDiskUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
 
     Node localhost
