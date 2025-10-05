@@ -91,7 +91,6 @@ configuration CreateADPDC
         $InterfaceAlias = $($Interface.Name)
     } else {
         $InterfaceAlias = (Get-NetIpAddress -IPAddress $(Get-IPFilter -VirtualNetwork $VirtualNetwork)).InterfaceAlias
-        #$Interface = Get-NetAdapter | Where-Object Name -Like $(Get-IPFilter -VirtualNetwork $VirtualNetwork) | Select-Object -First 1
     }
 
     # Because PowerShell 5 doesn't support [char] range operator
@@ -101,9 +100,6 @@ configuration CreateADPDC
 
     $EphemeralRawDisk = (Get-Disk | Where-Object {($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
     $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
-
-    # $EphemeralRawDiskNum = $EphemeralRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
-    # $ManagedRawDiskNum = $ManagedRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
 
     $EphemeralRawDiskUniqueId = $EphemeralRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
     $ManagedRawDiskUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
