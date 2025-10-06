@@ -110,29 +110,32 @@ configuration CreateADPDC
             RebootNodeIfNeeded = $true
         }
 
-        WaitforDisk EphemeralRawDisk
+        if (EphemeralRawDiskUniqueId)
         {
-            DiskId = $EphemeralRawDiskUniqueId
-            DiskIdType = 'UniqueId'
-            RetryIntervalSec =$RetryIntervalSec
-            RetryCount = $RetryCount
-        }
+            WaitforDisk EphemeralRawDisk
+            {
+                DiskId = $EphemeralRawDiskUniqueId
+                DiskIdType = 'UniqueId'
+                RetryIntervalSec =$RetryIntervalSec
+                RetryCount = $RetryCount
+            }
 
-        Disk PageFileDisk
-        {
-            DiskId      = $EphemeralRawDiskUniqueId
-            DiskIdType  = 'UniqueId'
-            DriveLetter = $AvailableDriveLetters[0]
-            DependsOn   = "[WaitForDisk]EphemeralRawDisk"
-        }
+            Disk PageFileDisk
+            {
+                DiskId      = $EphemeralRawDiskUniqueId
+                DiskIdType  = 'UniqueId'
+                DriveLetter = $AvailableDriveLetters[0]
+                DependsOn   = "[WaitForDisk]EphemeralRawDisk"
+            }
 
-        VirtualMemory PagingSettings
-        {
-            Type        = 'CustomSize'
-            Drive       = $AvailableDriveLetters[0]
-            InitialSize = '2048'
-            MaximumSize = '2048'
-            DependsOn = "[Disk]PageFileDisk"
+            VirtualMemory PagingSettings
+            {
+                Type        = 'CustomSize'
+                Drive       = $AvailableDriveLetters[0]
+                InitialSize = '2048'
+                MaximumSize = '2048'
+                DependsOn = "[Disk]PageFileDisk"
+            }
         }
 
         WindowsFeature DNS { 
