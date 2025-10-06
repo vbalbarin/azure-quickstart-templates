@@ -103,6 +103,14 @@ configuration CreateADPDC
     
     $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
     $ManagedRawDiskUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
+    
+    if ($EphemeralRawDiskUniqueId) {
+        $EphemeralDiskDriveLetter = $AvailableDriveLetters[0]
+        $ManagedDiskDriveLetter = $AvailableDriveLetters[1]
+    } else {
+        $EphemeralDiskDriveLetter = $null
+        $ManagedDiskDriveLetter = $AvailableDriveLetters[0]
+    }
 
     Node localhost
     {
@@ -124,14 +132,14 @@ configuration CreateADPDC
             {
                 DiskId      = $EphemeralRawDiskUniqueId
                 DiskIdType  = 'UniqueId'
-                DriveLetter = $AvailableDriveLetters[0]
+                DriveLetter = $EphemeralDiskDriveLetter
                 DependsOn   = "[WaitForDisk]EphemeralRawDisk"
             }
 
             VirtualMemory PagingSettings
             {
                 Type        = 'CustomSize'
-                Drive       = $AvailableDriveLetters[0]
+                Drive       = $EphemeralDiskDriveLetter
                 InitialSize = '2048'
                 MaximumSize = '2048'
                 DependsOn = "[Disk]PageFileDisk"
@@ -189,7 +197,7 @@ configuration CreateADPDC
         Disk ADDataDisk {
             DiskId      = $ManagedRawDiskUniqueId
             DiskIdType  = 'UniqueId'
-            DriveLetter = $AvailableDriveLetters[1]
+            DriveLetter = $ManagedDiskDriveLetter
             DependsOn   = "[WaitForDisk]ManagedRawDisk"
         }
 
@@ -216,9 +224,9 @@ configuration CreateADPDC
             DomainName                    = $DomainName
             Credential                    = $DomainCreds
             SafemodeAdministratorPassword = $DomainCreds
-            DatabasePath                  = $("{0}:\NTDS" -f $AvailableDriveLetters[1])
-            LogPath                       = $("{0}:\NTDS" -f $AvailableDriveLetters[1])
-            SysvolPath                    = $("{0}:\SYSVOL" -f $AvailableDriveLetters[1])
+            DatabasePath                  = $("{0}:\NTDS" -f $ManagedDiskDriveLetter)
+            LogPath                       = $("{0}:\NTDS" -f $ManagedDiskDriveLetter)
+            SysvolPath                    = $("{0}:\SYSVOL" -f $ManagedDiskDriveLetter)
             DependsOn                     = @("[Disk]ADDataDisk", "[WindowsFeature]ADDSInstall")
         } 
 
