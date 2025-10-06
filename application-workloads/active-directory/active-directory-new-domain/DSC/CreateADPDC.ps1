@@ -110,7 +110,7 @@ configuration CreateADPDC
             RebootNodeIfNeeded = $true
         }
 
-        if (EphemeralRawDiskUniqueId)
+        if ($EphemeralRawDiskUniqueId)
         {
             WaitforDisk EphemeralRawDisk
             {
