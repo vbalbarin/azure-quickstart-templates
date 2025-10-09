@@ -104,11 +104,13 @@ configuration CreateADPDC
     $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
     $ManagedRawDiskUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
     
+    ### NOTE: Skipping drive letter for $Ephemeral
+    ### Reference NOTE below
     if ($EphemeralRawDiskUniqueId) {
-        $EphemeralDiskDriveLetter = $AvailableDriveLetters[0]
+        # $EphemeralDiskDriveLetter = $AvailableDriveLetters[0]
         $ManagedDiskDriveLetter = $AvailableDriveLetters[1]
     } else {
-        $EphemeralDiskDriveLetter = $null
+        # $EphemeralDiskDriveLetter = $null
         $ManagedDiskDriveLetter = $AvailableDriveLetters[0]
     }
 
@@ -118,33 +120,37 @@ configuration CreateADPDC
             RebootNodeIfNeeded = $true
         }
 
-        if ($EphemeralRawDiskUniqueId)
-        {
-            WaitforDisk EphemeralRawDisk
-            {
-                DiskId = $EphemeralRawDiskUniqueId
-                DiskIdType = 'UniqueId'
-                RetryIntervalSec =$RetryIntervalSec
-                RetryCount = $RetryCount
-            }
+        ### NOTE: The code block to create pagefile.sys on ephemeral disk has been removed.
+        ### Creating the pagefile.sys should instead be created as a computer start up task.
+        ### This accounts for loss during VM de-allocation.
 
-            Disk PageFileDisk
-            {
-                DiskId      = $EphemeralRawDiskUniqueId
-                DiskIdType  = 'UniqueId'
-                DriveLetter = $EphemeralDiskDriveLetter
-                DependsOn   = "[WaitForDisk]EphemeralRawDisk"
-            }
+        # if ($EphemeralRawDiskUniqueId)
+        # {
+        #     WaitforDisk EphemeralRawDisk
+        #     {
+        #         DiskId = $EphemeralRawDiskUniqueId
+        #         DiskIdType = 'UniqueId'
+        #         RetryIntervalSec =$RetryIntervalSec
+        #         RetryCount = $RetryCount
+        #     }
 
-            VirtualMemory PagingSettings
-            {
-                Type        = 'CustomSize'
-                Drive       = $EphemeralDiskDriveLetter
-                InitialSize = '2048'
-                MaximumSize = '2048'
-                DependsOn = "[Disk]PageFileDisk"
-            }
-        }
+        #     Disk PageFileDisk
+        #     {
+        #         DiskId      = $EphemeralRawDiskUniqueId
+        #         DiskIdType  = 'UniqueId'
+        #         DriveLetter = $EphemeralDiskDriveLetter
+        #         DependsOn   = "[WaitForDisk]EphemeralRawDisk"
+        #     }
+
+        #     VirtualMemory PagingSettings
+        #     {
+        #         Type        = 'CustomSize'
+        #         Drive       = $EphemeralDiskDriveLetter
+        #         InitialSize = '2048'
+        #         MaximumSize = '2048'
+        #         DependsOn = "[Disk]PageFileDisk"
+        #     }
+        # }
 
         WindowsFeature DNS { 
             Ensure = "Present" 
