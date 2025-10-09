@@ -100,21 +100,11 @@ configuration CreateADPDC
 
     $EphemeralRawDisk = (Get-Disk | Where-Object {($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
     $EphemeralRawDiskUniqueId = $EphemeralRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
-    $EphemeralRawDiskNumber = $EphemeralRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
     
     $ManagedRawDisk = (Get-Disk | Where-Object {!($_.FriendlyName -ilike 'Microsoft NVMe Direct Disk*') -and ($_.PartitionStyle -eq 'RAW')})
     $ManagedRawDiskUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
-    $ManagedRawDiskNumber = $ManagedRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
-
-    # if ($EphemeralRawDiskUniqueId) {
-    #     $EphemeralDiskDriveLetter = $AvailableDriveLetters[0]
-    #     $ManagedDiskDriveLetter = $AvailableDriveLetters[1]
-    # } else {
-    #     $EphemeralDiskDriveLetter = $null
-    #     $ManagedDiskDriveLetter = $AvailableDriveLetters[0]
-    # }
-
-    if ($EphemeralRawDiskNumber) {
+    
+    if ($EphemeralRawDiskUniqueId) {
         $EphemeralDiskDriveLetter = $AvailableDriveLetters[0]
         $ManagedDiskDriveLetter = $AvailableDriveLetters[1]
     } else {
@@ -128,25 +118,20 @@ configuration CreateADPDC
             RebootNodeIfNeeded = $true
         }
 
-        # if ($EphemeralRawDiskUniqueId)
-        if ($EphemeralRawDiskNumber)
+        if ($EphemeralRawDiskUniqueId)
         {
             WaitforDisk EphemeralRawDisk
             {
-                # DiskId = $EphemeralRawDiskUniqueId
-                # DiskIdType = 'UniqueId'
-                DiskId = $EphemeralRawDiskNumber
-                DiskIdType = 'Number'
+                DiskId = $EphemeralRawDiskUniqueId
+                DiskIdType = 'UniqueId'
                 RetryIntervalSec =$RetryIntervalSec
                 RetryCount = $RetryCount
             }
 
             Disk PageFileDisk
             {
-                # DiskId      = $EphemeralRawDiskUniqueId
-                # DiskIdType  = 'UniqueId'
-                DiskId      = $EphemeralRawDiskNumber
-                DiskIdType  = 'Number'
+                DiskId      = $EphemeralRawDiskUniqueId
+                DiskIdType  = 'UniqueId'
                 DriveLetter = $EphemeralDiskDriveLetter
                 DependsOn   = "[WaitForDisk]EphemeralRawDisk"
             }
@@ -203,19 +188,15 @@ configuration CreateADPDC
 
         WaitforDisk ManagedRawDisk
         {
-            # DiskId           = $ManagedRawDiskUniqueId
-            # DiskIdType       = 'UniqueId'
-            DiskId           = $ManagedRawDiskNumber
-            DiskIdType       = 'Number'
+            DiskId           = $ManagedRawDiskUniqueId
+            DiskIdType       = 'UniqueId'
             RetryIntervalSec = $RetryIntervalSec
             RetryCount       = $RetryCount
         }
 
         Disk ADDataDisk {
-            # DiskId      = $ManagedRawDiskUniqueId
-            # DiskIdType  = 'UniqueId'
-            DiskId      = $ManagedRawDiskNumber
-            DiskIdType       = 'Number'
+            DiskId      = $ManagedRawDiskUniqueId
+            DiskIdType  = 'UniqueId'
             DriveLetter = $ManagedDiskDriveLetter
             DependsOn   = "[WaitForDisk]ManagedRawDisk"
         }
