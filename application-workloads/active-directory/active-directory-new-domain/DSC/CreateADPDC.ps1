@@ -106,7 +106,15 @@ configuration CreateADPDC
     $ManagedRawDiskUniqueId = $ManagedRawDisk.UniqueId | % {if ($_ -ne $null) {$_} else {$null}}
     $ManagedRawDiskNumber = $ManagedRawDisk.Number | % {if ($_ -ne $null) {$_} else {$null}}
 
-    if ($EphemeralRawDiskUniqueId) {
+    # if ($EphemeralRawDiskUniqueId) {
+    #     $EphemeralDiskDriveLetter = $AvailableDriveLetters[0]
+    #     $ManagedDiskDriveLetter = $AvailableDriveLetters[1]
+    # } else {
+    #     $EphemeralDiskDriveLetter = $null
+    #     $ManagedDiskDriveLetter = $AvailableDriveLetters[0]
+    # }
+
+    if ($EphemeralRawDiskNumber) {
         $EphemeralDiskDriveLetter = $AvailableDriveLetters[0]
         $ManagedDiskDriveLetter = $AvailableDriveLetters[1]
     } else {
@@ -120,7 +128,8 @@ configuration CreateADPDC
             RebootNodeIfNeeded = $true
         }
 
-        if ($EphemeralRawDiskUniqueId)
+        # if ($EphemeralRawDiskUniqueId)
+        if ($EphemeralRawDiskNumber)
         {
             WaitforDisk EphemeralRawDisk
             {
